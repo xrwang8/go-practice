@@ -66,3 +66,11 @@ func InitHandler(r gin.IRouter) {
 		v.Registry(r)
 	}
 }
+
+func LoadedGinApps() (names []string) {
+	for k := range handlerMap {
+		names = append(names, k)
+	}
+
+	return
+}
