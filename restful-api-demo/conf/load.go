@@ -4,7 +4,10 @@ import (
 	"fmt"
 	"github.com/BurntSushi/toml"
 	"github.com/caarlos0/env/v6"
+	"sync"
 )
+
+var once sync.Once
 
 func LoadConfigFromToml(filePath string) error {
 	config = NewDefaultConfig()

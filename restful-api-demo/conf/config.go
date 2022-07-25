@@ -1,8 +1,11 @@
 package conf
 
 import (
+	"context"
 	"database/sql"
+	"fmt"
 	_ "github.com/go-sql-driver/mysql"
+	"time"
 )
 
 var config *Config
@@ -14,7 +17,6 @@ func C() *Config {
 	return config
 }
 
-// 初始化一个有默认值的Config对象
 func NewDefaultConfig() *Config {
 	return &Config{
 		App:   NewDefaultApp(),
@@ -43,8 +45,6 @@ func NewDefaultMySQL() *MySQL {
 	}
 }
 
-// Config 应用配置
-// 通过封装为一个对象, 来与外部配置进行对接
 type Config struct {
 	App   *App   `toml:"app"`
 	MySQL *MySQL `toml:"mysql"`
@@ -76,7 +76,6 @@ type MySQL struct {
 	MaxIdleTime int `toml:"max_idle_time" env:"MYSQL_MAX_idle_TIME"`
 }
 
-// 用于配置全局Logger对象
 type Log struct {
 	Level   string    `toml:"level" env:"LOG_LEVEL"`
 	Format  LogFormat `toml:"format" env:"LOG_FORMAT"`
@@ -90,4 +89,39 @@ func NewDefaultLog() *Log {
 		Format: TextFormat,
 		To:     ToStdout,
 	}
+}
+
+// 连接池, driverConn具体的连接对象, 他维护着一个Socket
+// pool []*driverConn, 维护pool里面的连接都是可用的, 定期检查我们的conn健康情况
+// 某一个driverConn已经失效, driverConn.Reset(), 清空该结构体的数据, Reconn获取一个连接, 让该conn借壳存活
+// 避免driverConn结构体的内存申请和释放的一个成本
+func (m *MySQL) getDBConn() (*sql.DB, error) {
+	var err error
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&multiStatements=true", m.UserName, m.Password, m.Host, m.Port, m.Database)
+	db, err := sql.Open("mysql", dsn)
+	if err != nil {
+		return nil, fmt.Errorf("connect to mysql<%s> error, %s", dsn, err.Error())
+	}
+
+	db.SetMaxOpenConns(m.MaxOpenConn)
+	db.SetMaxIdleConns(m.MaxIdleConn)
+	db.SetConnMaxLifetime(time.Second * time.Duration(m.MaxLifeTime))
+	db.SetConnMaxIdleTime(time.Second * time.Duration(m.MaxIdleTime))
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if err := db.PingContext(ctx); err != nil {
+		return nil, fmt.Errorf("ping mysql<%s> error, %s", dsn, err.Error())
+	}
+	return db, nil
+}
+
+func (m *MySQL) GetDB() *sql.DB {
+	once.Do(func() {
+		conn, err := m.getDBConn()
+		if err != nil {
+			panic(err)
+		}
+		db = conn
+	})
+	return db
 }

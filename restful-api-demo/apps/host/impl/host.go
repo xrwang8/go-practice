@@ -7,8 +7,17 @@ import (
 )
 
 func (h *HostService) CreateHost(ctx context.Context, host *host.Host) (*host.Host, error) {
-	h.l.Debug("记得记得就记得叫")
-	return nil, nil
+	if err := host.Validate(); err != nil {
+		return nil, err
+	}
+
+	host.InjectDefault()
+	// 有dao模块 负责 把对象入库
+	if err := h.save(ctx, host); err != nil {
+		return nil, err
+	}
+
+	return host, nil
 }
 
 func (h *HostService) QueryHost(ctx context.Context, request *host.QueryHostRequest) (*host.HostSet, error) {

@@ -1,6 +1,10 @@
 package host
 
-import "context"
+import (
+	"context"
+	"github.com/go-playground/validator/v10"
+	"time"
+)
 
 const (
 	PrivateIDC Vendor = iota
@@ -8,6 +12,8 @@ const (
 	AliYun
 	HuaWei
 )
+
+var validate = validator.New()
 
 type Service interface {
 	CreateHost(context.Context, *Host) (*Host, error)
@@ -83,4 +89,14 @@ type DescribeHostRequest struct {
 
 type DeleteHostRequest struct {
 	Id string
+}
+
+func (h *Host) Validate() error {
+	return validate.Struct(h)
+}
+
+func (h *Host) InjectDefault() {
+	if h.CreateAt == 0 {
+		h.CreateAt = time.Now().UnixMilli()
+	}
 }
