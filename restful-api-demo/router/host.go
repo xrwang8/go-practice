@@ -14,13 +14,11 @@ func (h *Handler) CreateHost(c *gin.Context) {
 		return
 	}
 
-	host, err := h.Service.CreateHost(c.Request.Context(), host)
+	host, err := h.svc.CreateHost(c.Request.Context(), host)
 	if err != nil {
 		response.Failed(c.Writer, err)
 		return
 	}
-
 	// 成功, 把对象实例返回给HTTP API调用方
 	response.Success(c.Writer, host)
-
 }

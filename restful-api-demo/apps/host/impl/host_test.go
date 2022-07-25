@@ -38,5 +38,5 @@ func init() {
 	// 需要初始化全局Logger,
 	// 为什么不设计为默认打印, 因为性能
 	fmt.Println(zap.DevelopmentSetup())
-	hs = NewHostService()
+
 }

@@ -10,9 +10,7 @@ func (h *HostService) CreateHost(ctx context.Context, host *host.Host) (*host.Ho
 	if err := host.Validate(); err != nil {
 		return nil, err
 	}
-
 	host.InjectDefault()
-	// 有dao模块 负责 把对象入库
 	if err := h.save(ctx, host); err != nil {
 		return nil, err
 	}

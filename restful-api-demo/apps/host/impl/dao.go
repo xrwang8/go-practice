@@ -12,11 +12,7 @@ func (hs *HostService) save(ctx context.Context, ins *host.Host) error {
 	tx, err := hs.db.BeginTx(ctx, nil)
 	if err != nil {
 		return fmt.Errorf("start tx error, %s", err)
-
 	}
-	// 通过Defer处理事务提交方式
-	// 1. 无报错，则Commit 事务
-	// 2. 有报错, 则Rollback 事务
 	defer func() {
 		if err != nil {
 			if err := tx.Rollback(); err != nil {
@@ -28,13 +24,13 @@ func (hs *HostService) save(ctx context.Context, ins *host.Host) error {
 			}
 		}
 	}()
-	rstmt, err := tx.PrepareContext(ctx, InsertResourceSQL)
+	stmt, err := tx.PrepareContext(ctx, InsertResourceSQL)
 	if err != nil {
 		return err
 	}
-	defer rstmt.Close()
+	defer stmt.Close()
 
-	_, err = rstmt.ExecContext(ctx,
+	_, err = stmt.ExecContext(ctx,
 		ins.Id, ins.Vendor, ins.Region, ins.CreateAt, ins.ExpireAt, ins.Type,
 		ins.Name, ins.Description, ins.Status, ins.UpdateAt, ins.SyncAt, ins.Account, ins.PublicIP,
 		ins.PrivateIP,

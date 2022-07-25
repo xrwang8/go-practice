@@ -1,7 +1,6 @@
 package host
 
 import (
-	"context"
 	"github.com/go-playground/validator/v10"
 	"time"
 )
@@ -14,18 +13,6 @@ const (
 )
 
 var validate = validator.New()
-
-type Service interface {
-	CreateHost(context.Context, *Host) (*Host, error)
-
-	QueryHost(context.Context, *QueryHostRequest) (*HostSet, error)
-
-	DescribeHost(context.Context, *DescribeHostRequest) (*Host, error)
-
-	UpdateHost(context.Context, *UpdateHostRequest) (*Host, error)
-
-	DeleteHost(context.Context, *DeleteHostRequest) (*Host, error)
-}
 
 type HostSet struct {
 	Items []*Host `json:"items"`
