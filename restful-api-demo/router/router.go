@@ -10,17 +10,20 @@ type Handler struct {
 	svc host.Service
 }
 
-func NewHandler() *Handler {
-	return &Handler{}
-}
+var handler = &Handler{}
 
 func (h *Handler) Config() {
-	if apps.HostService == nil {
-		panic("dependencies host hostservice is nil")
-	}
-	h.svc = apps.HostService
+	h.svc = apps.GetHostService(host.AppName).(host.Service)
 }
 
 func (h *Handler) Registry(r gin.IRouter) {
 	r.POST("/hosts", h.CreateHost)
+}
+
+func (h *Handler) Name() string {
+	return host.AppName
+}
+
+func init() {
+	apps.RegistryHandler(handler)
 }

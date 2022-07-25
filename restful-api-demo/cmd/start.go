@@ -5,7 +5,6 @@ import (
 	"github.com/go-practice/restful-api-demo/apps"
 	_ "github.com/go-practice/restful-api-demo/apps/host/all"
 	"github.com/go-practice/restful-api-demo/conf"
-	"github.com/go-practice/restful-api-demo/router"
 	"github.com/spf13/cobra"
 )
 
@@ -19,11 +18,10 @@ var StartCmd = &cobra.Command{
 		if err := conf.LoadConfigFromToml(confFile); err != nil {
 			panic(err)
 		}
-		apps.Init()
-		handler := router.NewHandler()
-		handler.Config()
+		apps.InitHS()
+
 		g := gin.Default()
-		handler.Registry(g)
+		apps.InitHandler(g)
 		return g.Run(conf.C().App.HttpAddr())
 
 	},
