@@ -2,7 +2,6 @@ package conf
 
 import (
 	"database/sql"
-
 	_ "github.com/go-sql-driver/mysql"
 )
 
@@ -11,10 +10,37 @@ var config *Config
 // 全局MySQL 客户端实例
 var db *sql.DB
 
-// 要想获取配置, 单独提供函数
-// 全局Config对象获取函数
 func C() *Config {
 	return config
+}
+
+// 初始化一个有默认值的Config对象
+func NewDefaultConfig() *Config {
+	return &Config{
+		App:   NewDefaultApp(),
+		Log:   NewDefaultLog(),
+		MySQL: NewDefaultMySQL(),
+	}
+}
+
+func NewDefaultApp() *App {
+	return &App{
+		Name: "restful-api-demo",
+		Host: "127.0.0.1",
+		Port: "8080",
+	}
+}
+
+func NewDefaultMySQL() *MySQL {
+	return &MySQL{
+		Host:        "101.35.79.218",
+		Port:        "3306",
+		UserName:    "root",
+		Password:    "123456",
+		Database:    "test",
+		MaxOpenConn: 200,
+		MaxIdleConn: 100,
+	}
 }
 
 // Config 应用配置
@@ -22,6 +48,7 @@ func C() *Config {
 type Config struct {
 	App   *App   `toml:"app"`
 	MySQL *MySQL `toml:"mysql"`
+	Log   *Log   `toml:"log"`
 }
 
 type App struct {
@@ -55,4 +82,12 @@ type Log struct {
 	Format  LogFormat `toml:"format" env:"LOG_FORMAT"`
 	To      LogTo     `toml:"to" env:"LOG_TO"`
 	PathDir string    `toml:"path_dir" env:"LOG_PATH_DIR"`
+}
+
+func NewDefaultLog() *Log {
+	return &Log{
+		Level:  "info",
+		Format: TextFormat,
+		To:     ToStdout,
+	}
 }
