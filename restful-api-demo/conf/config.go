@@ -17,6 +17,11 @@ func C() *Config {
 	return config
 }
 
+func (a *App) HttpAddr() string {
+	return fmt.Sprintf("%s:%s", a.Host, a.Port)
+
+}
+
 func NewDefaultConfig() *Config {
 	return &Config{
 		App:   NewDefaultApp(),
